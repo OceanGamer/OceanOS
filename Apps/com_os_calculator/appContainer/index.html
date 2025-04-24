@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-display" id="display">0</div>
+        <div class="calculator-buttons">
+            <!-- Fila 1 -->
+            <button class="calculator-button calculator-button-function" onclick="clearAll()">AC</button>
+            <button class="calculator-button calculator-button-function" onclick="toggleSign()">+/-</button>
+            <button class="calculator-button calculator-button-function" onclick="percentage()">%</button>
+            <button class="calculator-button calculator-button-operator" onclick="setOperation('/')">÷</button>
+            
+            <!-- Fila 2 -->
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(7)">7</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(8)">8</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(9)">9</button>
+            <button class="calculator-button calculator-button-operator" onclick="setOperation('*')">×</button>
+            
+            <!-- Fila 3 -->
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(4)">4</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(5)">5</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(6)">6</button>
+            <button class="calculator-button calculator-button-operator" onclick="setOperation('-')">−</button>
+            
+            <!-- Fila 4 -->
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(1)">1</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(2)">2</button>
+            <button class="calculator-button calculator-button-number" onclick="appendNumber(3)">3</button>
+            <button class="calculator-button calculator-button-operator" onclick="setOperation('+')">+</button>
+            
+            <!-- Fila 5 -->
+            <button class="calculator-button calculator-button-number calculator-button-zero" onclick="appendNumber(0)">0</button>
+            <button class="calculator-button calculator-button-number" onclick="appendDecimal()">.</button>
+            <button class="calculator-button calculator-button-operator" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

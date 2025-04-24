@@ -1,0 +1,210 @@
+:root {
+    --background-primary: #1e1e1e;
+    --background-secondary: #2d2d2d;
+    --background-hover: #3d3d3d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #404040;
+    --accent-color: #0d84fb;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--background-primary);
+    color: var(--text-primary);
+}
+
+.explorer-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+}
+
+.sidebar-section {
+    padding: 10px 0;
+}
+
+.sidebar-section h3 {
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--text-secondary);
+    padding: 0 10px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.sidebar-items {
+    padding: 5px 0;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 0 5px;
+    transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+    background-color: var(--background-hover);
+}
+
+.sidebar-item.active {
+    background-color: var(--accent-color);
+}
+
+.sidebar-item img {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.sidebar-item span {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-primary);
+}
+
+.toolbar {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background-color: var(--background-secondary);
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+}
+
+.navigation-controls {
+    display: flex;
+    gap: 8px;
+    margin-right: 16px;
+}
+
+.nav-button, .view-button {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.nav-button:hover, .view-button:hover {
+    background-color: var(--background-hover);
+}
+
+.nav-button svg, .view-button svg {
+    fill: var(--text-primary);
+}
+
+.current-path {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.view-controls {
+    display: flex;
+    gap: 4px;
+    margin-left: 16px;
+}
+
+.view-button.active {
+    background-color: var(--accent-color);
+}
+
+.files-grid {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.file-item:hover {
+    background-color: var(--background-hover);
+}
+
+.file-item img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+}
+
+.file-item span {
+    font-size: 12px;
+    text-align: center;
+    word-break: break-word;
+    max-width: 100%;
+    color: var(--text-primary);
+}
+
+.status-bar {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background-color: var(--background-secondary);
+    border-top: 1px solid var(--border-color);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Estilo para la barra de desplazamiento */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--background-hover);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
+} 

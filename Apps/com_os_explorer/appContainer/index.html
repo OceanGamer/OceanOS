@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Archivos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="explorer-container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>Ubicaciones</h3>
+                <div class="sidebar-items">
+                    <div class="sidebar-item" data-path="Documents/Descargas">
+                        <img src="defaultIcons/download.png" alt="Descargas">
+                        <span>Descargas</span>
+                    </div>
+                    <div class="sidebar-item" data-path="Documents/Documentos">
+                        <img src="defaultIcons/docs.png" alt="Documentos">
+                        <span>Documentos</span>
+                    </div>
+                    <div class="sidebar-item" data-path="Documents/Fotos">
+                        <img src="defaultIcons/image.png" alt="Fotos">
+                        <span>Fotos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="navigation-controls">
+                    <button class="nav-button back">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-button forward" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path d="M10.59 6L12 7.41 7.83 12 12 16.59 10.59 18l-6-6z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="current-path"></div>
+                <div class="view-controls">
+                    <button class="view-button grid-view active">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/>
+                        </svg>
+                    </button>
+                    <button class="view-button list-view">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="files-grid" id="filesGrid">
+                <!-- Los archivos se cargarán aquí dinámicamente -->
+            </div>
+            <div class="status-bar">
+                <span class="items-count">0 elementos</span>
+                <span class="space-available"></span>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

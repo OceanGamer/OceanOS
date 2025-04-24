@@ -1,0 +1,38 @@
+{
+  "appname": "Calculadora",
+  "applogo": "app.png",
+  "version": "1.0.0",
+  "index": "index.html",
+  "width": 300,
+  "height": 500,
+  "minWidth": 300,
+  "minHeight": 500,
+  "resizable": true,
+  "navMenus": [
+      {
+          "name": "Ventana",
+          "items": [
+              {
+                  "type": "addNewContextualBtn",
+                  "name": "Maximizar ventana",
+                  "function": "maximizeWindow(pid)"
+              },
+              {
+                  "type": "addNewContextualBtn",
+                  "name": "Maximizar ventana sin dock",
+                  "function": "maximizeWindowWithoutDock(pid)"
+              },
+              {
+                  "type": "addNewContextualBtn",
+                  "name": "Ventana completa",
+                  "function": "fullScreenWindow(pid)"
+              },
+              {
+                  "type": "addNewContextualBtn",
+                  "name": "Minimizar ventana",
+                  "function": "minimizeWindow(pid)"
+              }
+          ]
+      }
+  ]
+}

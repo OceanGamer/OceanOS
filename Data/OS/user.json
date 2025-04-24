@@ -1,0 +1,15 @@
+{
+    "username": "Cesar Galindo",
+    "password": "1234",
+    "background": "System/Images/Backgrounds/forest.webp",
+    "profile": "Data/OS/userProfile.jpg",
+    "attachedApps": [
+        "com_os_calculator",
+        "com_os_explorer",
+        "com_os_terminal"
+    ],
+    "attachedStartMenuApps": [
+        "com_os_calculator",
+        "com_os_explorer"
+    ]
+}
