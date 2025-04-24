@@ -1,0 +1,1904 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url("../Images/Backgrounds/sunsetroad.png");
+    background-position: center;
+    background-size: cover;
+    font-family: 'SanFrancisco', sans-serif;
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.os_context_menu {
+    position: fixed;
+    min-width: 200px;
+    max-width: 300px;
+    background-color: rgba(40, 40, 40, 0.548);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 9px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    padding: 6px 0;
+    z-index: 910;
+    font-family: 'SanFrancisco', sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+    transform-origin: top left;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.os_context_menu.visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
+
+.os_context_menu hr {
+    border: none;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin: 5px 0;
+}
+
+.os_context_menu_item {
+    padding: 6px 12px 6px 28px;
+    position: relative;
+    cursor: default;
+    user-select: none;
+    margin: 0 6px;
+    border-radius: 4px;
+    display: flex;
+    width: calc(100% - 12px);
+    box-sizing: border-box;
+    border: none;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.os_context_menu_item:hover {
+    background-color: rgba(0, 122, 255, 0.2);
+    color: #5fa8ff;
+}
+
+.os_context_menu_item.disabled {
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+}
+
+.os_context_menu_item .shortcut {
+    position: absolute;
+    right: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}
+
+.os_context_menu_item .icon {
+    position: absolute;
+    left: 8px;
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: invert(90%) brightness(0.9);
+}
+
+/* Efecto de profundidad adicional */
+.os_context_menu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 9px;
+    background: linear-gradient(135deg, 
+              rgba(255,255,255,0.05) 0%, 
+              rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+
+
+.control-center {
+    position: fixed;
+    top: 40px;
+    right: 10px;
+    width: 320px;
+    background-color: rgba(40, 40, 40, 0.7);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'SanFrancisco', sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 1000;
+    overflow: hidden;
+    transform-origin: top right;
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.control-modules {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.control-module {
+    background-color: rgba(120, 120, 120, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.control-tile {
+    background-color: rgba(120, 120, 120, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.control-slider {
+    width: 100%;
+    height: 4px;
+    margin-top: 8px;
+    -webkit-appearance: none;
+    background: rgba(120, 120, 120, 0.4);
+    border-radius: 2px;
+    outline: none;
+}
+.control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.control-tile.large {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.control-tile.slider {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+}
+
+.control-module:hover .control-slider::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+.control-icon {
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 8px;
+}
+
+.wifi { background-image: url('../Images/Icons/controlcenter/ethernet.png'); }
+.bluetooth { background-image: url('../Images/Icons/controlcenter/bluetooth.png'); }
+.brightness { background-image: url('../Images/Icons/controlcenter/brillo.png'); }
+.volume { background-image: url('../Images/Icons/controlcenter/volumen.png'); }
+
+.control-label {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.control-status {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.6;
+}
+
+.control-toggle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: rgba(120, 120, 120, 0.4);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.control-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.control-toggle.active {
+    background-color: #007AFF;
+}
+
+.control-toggle.active::after {
+    left: 14px;
+}
+
+.slider-container {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.slider-track {
+    height: 4px;
+    background-color: rgba(120, 120, 120, 0.4);
+    border-radius: 2px;
+    position: relative;
+}
+
+.slider-progress {
+    position: absolute;
+    height: 100%;
+    border-radius: 2px;
+    background-color: #007AFF;
+}
+
+.slider-thumb {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: white;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.control-tile:hover .slider-thumb {
+    opacity: 1;
+}
+
+/* Reproductor de música */
+.music-player {
+    background-color: rgba(120, 120, 120, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.music-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.music-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    background-size: cover;
+    background-position: center;
+    margin-right: 12px;
+}
+
+.music-details {
+    flex: 1;
+}
+
+.music-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.music-artist {
+    font-size: 11px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.music-controls {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 12px;
+}
+
+.music-btn {
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    border: none;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.music-btn:hover {
+    opacity: 1;
+}
+
+.prev { background-image: url('../Images/Icons/controlcenter/before.png'); }
+.play { background-image: url('../Images/Icons/controlcenter/play.png'); width: 28px; height: 28px; }
+.next { background-image: url('../Images/Icons/controlcenter/after.png'); }
+
+.music-progress {
+    height: 3px;
+    background-color: rgba(120, 120, 120, 0.4);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #007AFF;
+    border-radius: 2px;
+}
+
+/* Panel de notificaciones */
+.notifications-panel {
+    background-color: rgba(120, 120, 120, 0.15);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.notifications-header h3 {
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: #007AFF;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.clear-btn:hover {
+    background-color: rgba(0, 122, 255, 0.1);
+}
+
+.notification {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+.notification:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.notification-icon {
+    width: 32px;
+    height: 32px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 12px;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.notification-text {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.notification-time {
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+/* Efectos de profundidad y brillo */
+.control-center::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+              rgba(255,255,255,0.05) 0%, 
+              rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
+    z-index: -1;
+    border-radius: 14px;
+}
+
+/* Estilos para el lock screen */
+.os_lockscreen_password {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: white;
+    font-size: 16px;
+    width: 200px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.os_lockscreen_password:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.os_lockscreen_hint {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.os_lockscreen_hint.error {
+    color: #ff4444;
+}
+
+/* Animación de shake */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+    border-color: #ff4444 !important;
+}
+
+
+/* OS Dock - MacOS Sequoia style */
+.os_dock {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: fixed;
+    bottom: 0;
+    padding-bottom: 12px;
+    transition: transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                bottom 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+    z-index: 900;
+}
+
+.os_dock.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.os_dock.hidden {
+    transform: translateY(60px);
+    opacity: 0;
+}
+
+.os_dock.hiding {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+.os_dock.showing {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.os_dock_obj {
+    background-color: rgba(32, 32, 32, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 0 12px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.os_dock_appbtn,
+.os_dock_windowbtn {
+    width: 48px;
+    height: 48px;
+    margin: 0 4px;
+    border: 0;
+    background-position: center;
+    background-size: 24px;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    transition: all 0.2s cubic-bezier(0.2, 0.82, 0.2, 1);
+    position: relative;
+    border-radius: 12px;
+    transform-origin: center;
+}
+
+.os_dock_appbtn:hover,
+.os_dock_windowbtn:hover {
+    transform: scale(1.1) translateY(-4px);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.os_dock_appbtn:active,
+.os_dock_windowbtn:active {
+    transform: scale(0.95) translateY(2px);
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: all 0.1s ease;
+}
+
+.os_dock_active > div,
+.os_dock_windowbtn.os_dock_active > div {
+    width: 18px;
+    height: 3px;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.os_dock_open > div,
+.os_dock_windowbtn.os_dock_open > div {
+    width: 4px;
+    height: 4px;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.verticalHr {
+    width: 1px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.15);
+    margin: 0 12px;
+}
+
+/* Animaciones de ventana */
+@keyframes windowOpen {
+    0% {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+        filter: blur(2px);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowClose {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes windowMinimize {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: scale(0.1) translate(var(--minimize-target-x), var(--minimize-target-y));
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes windowMaximize {
+    0% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowRestore {
+    0% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(0.98);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+}
+
+@keyframes windowFullScreen {
+    0% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowFullScreenRestore {
+    0% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(0.98);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+}
+
+@keyframes windowWithoutDock {
+    0% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowWithoutDockRestore {
+    0% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(0.98);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+}
+
+/* Animación para el botón del dock */
+@keyframes dockButtonOpen {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes dockButtonClose {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+.os_dock_appbtn.opening,
+.os_dock_windowbtn.opening {
+    animation: dockButtonOpen 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_dock_appbtn.closing,
+.os_dock_windowbtn.closing {
+    animation: dockButtonClose 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+/* Animaciones de ventana */
+.os_window.opening {
+    animation: windowOpen 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.closing {
+    animation: windowClose 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.minimizing {
+    animation: windowMinimize 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.maximizing {
+    animation: windowMaximize 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.restoring {
+    animation: windowRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.fullscreening {
+    animation: windowFullScreen 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.fullscreenrestoring {
+    animation: windowFullScreenRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.withoutdocking {
+    animation: windowWithoutDock 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.withoutdockrestoring {
+    animation: windowWithoutDockRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+/* OS Content Area */
+.os_workarea {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    right: 0;
+    bottom: 80px;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                bottom 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_workarea.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.version-info {
+    position: absolute;
+    bottom: 70px;
+    left: 20px;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* Transiciones entre pantallas */
+.os_bootContainer, .os_lockscreen, .os_workarea {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+/* Estado inicial de las pantallas */
+.os_bootContainer {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.os_lockscreen {
+    opacity: 0;
+    transform: scale(0.95);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.os_lockscreen.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+.os_workarea {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.os_workarea.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Ocultar elementos */
+.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+.verticalHr {
+    width: 1px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 8px;
+}
+
+/* Animaciones de ventana */
+@keyframes windowOpen {
+    0% {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+        filter: blur(2px);
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowClose {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes windowMinimize {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: scale(0.1) translate(var(--minimize-target-x), var(--minimize-target-y));
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes windowMaximize {
+    0% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+}
+
+@keyframes windowRestore {
+    0% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(0.98);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+}
+
+@keyframes windowSnapLeft {
+    0% {
+        transform: scale(1);
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+    }
+    100% {
+        transform: scale(1);
+        width: 50%;
+        height: 100%;
+        left: 0;
+        top: 0;
+    }
+}
+
+@keyframes windowSnapRight {
+    0% {
+        transform: scale(1);
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+    }
+    100% {
+        transform: scale(1);
+        width: 50%;
+        height: 100%;
+        left: 50%;
+        top: 0;
+    }
+}
+
+/* Estilo de la ventana macOS */
+.os_window {
+    width: 600px;
+    min-height: 400px;
+    max-height: 100%;
+    background-color: rgba(40, 40, 40, 0.5);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    will-change: transform, opacity, filter, width, height, left, top, border-radius;
+    transition: width 0.1s cubic-bezier(0.2, 0.82, 0.2, 1),
+                height 0.1s cubic-bezier(0.2, 0.82, 0.2, 1),
+                left 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                border-radius 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                filter 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+    resize: none;
+}
+
+/* Bordes de redimensionamiento */
+.os_window:not(.maximized) {
+    resize: both;
+}
+
+.os_window:not(.maximized)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: se-resize;
+    background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%);
+    border-radius: 0 0 14px 0;
+    z-index: 1;
+    transform: translate(0, 0);
+}
+
+.os_window:not(.maximized)::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    cursor: sw-resize;
+    background: linear-gradient(225deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%);
+    border-radius: 0 0 0 14px;
+    z-index: 1;
+    transform: translate(0, 0);
+}
+
+.os_window:not(.maximized) .os_window_content {
+    position: relative;
+}
+
+.os_window:not(.maximized) .os_window_content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 12px;
+    cursor: s-resize;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.1), transparent);
+    z-index: 1;
+    transform: translate(0, 0);
+}
+
+.os_window.maximized {
+    position: absolute !important;
+    width: 100% !important;
+    height: calc(100% - 88px) !important; /* 28px navbar + 60px dock */
+    top: 28px !important; /* Posicionar debajo del navbar */
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 60px !important; /* Dejar espacio para el dock */
+    border-radius: 0 !important;
+    transform: none !important;
+    transition: width 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                height 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                left 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                border-radius 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                filter 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_window.hidden {
+    display: none;
+}
+
+/* Barra de título */
+.os_window_header {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(30, 30, 30, 0.3);
+    user-select: none;
+    -webkit-app-region: drag;
+}
+
+/* Botones de control de ventana */
+.os_window_controls {
+    display: flex;
+    gap: 8px;
+    margin-right: auto;
+    -webkit-app-region: no-drag;
+}
+
+.os_window_control {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.os_window_control:hover {
+    background-color: #007AFF;
+}
+
+/* Efecto hover en los botones */
+.os_window_control::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.os_window_control_close::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6"><path d="M1 1l4 4m0-4L1 5" stroke="white" stroke-width="1" fill="none"/></svg>');
+}
+
+.os_window_control_minimize::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6"><path d="M1 3h4" stroke="white" stroke-width="1"/></svg>');
+}
+
+.os_window_control_maximize::after {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="6" viewBox="0 0 6 6"><path d="M1 1h4v4H1z" stroke="white" stroke-width="1" fill="none"/></svg>');
+}
+
+/* Título de la ventana */
+.os_window_title {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 20px;
+}
+
+/* Área de contenido */
+.os_window_content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background-color: transparent;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.os_window_content iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background-color: transparent;
+    flex: 1;
+}
+
+/* Barra de desplazamiento personalizada */
+.os_window_content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.os_window_content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.os_window_content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.os_window_content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Efecto de profundidad adicional */
+.os_window::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, 
+              rgba(255,255,255,0.05) 0%, 
+              rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Animaciones de ventana */
+.os_window.opening {
+    animation: windowOpen 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.closing {
+    animation: windowClose 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.minimizing {
+    animation: windowMinimize 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.maximizing {
+    animation: windowMaximize 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.restoring {
+    animation: windowRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.fullscreening {
+    animation: windowFullScreen 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.fullscreenrestoring {
+    animation: windowFullScreenRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.withoutdocking {
+    animation: windowWithoutDock 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.withoutdockrestoring {
+    animation: windowWithoutDockRestore 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_window.snapped-left,
+.os_window.snapped-right {
+    position: absolute;
+    height: 100% !important; /* 28px navbar + 60px dock */
+    top: 0px !important; /* Posicionar debajo del navbar */
+    border-radius: 0;
+    transition: width 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                height 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                left 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                border-radius 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                filter 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_window.snapped-left {
+    left: 0 !important;
+    right: auto !important;
+    width: 50% !important;
+}
+
+.os_window.snapped-right {
+    right: 0 !important;
+    left: auto !important;
+    width: 50% !important;
+}
+
+/* Permitir redimensionamiento en ventanas con snap */
+.os_window.snapped-left:not(.maximized),
+.os_window.snapped-right:not(.maximized) {
+    resize: both;
+}
+
+.os_window.snapped-left:not(.maximized)::after,
+.os_window.snapped-right:not(.maximized)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: se-resize;
+    background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%);
+    z-index: 1;
+}
+
+.os_window.snapped-left:not(.maximized)::before,
+.os_window.snapped-right:not(.maximized)::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    cursor: sw-resize;
+    background: linear-gradient(225deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%);
+    z-index: 1;
+}
+
+.os_window.snapped-left:not(.maximized) .os_window_content::after,
+.os_window.snapped-right:not(.maximized) .os_window_content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 12px;
+    cursor: s-resize;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.1), transparent);
+    z-index: 1;
+}
+
+/* Animación de arrastre */
+.os_window {
+    transition: transform 0.1s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_window.dragging {
+    transition: transform 0.1s cubic-bezier(0.2, 0.82, 0.2, 1);
+    cursor: grabbing;
+    filter: brightness(0.95);
+}
+
+.os_window.dragging:active {
+    transition: transform 0.1s cubic-bezier(0.2, 0.82, 0.2, 1);
+    transform-origin: center center;
+}
+
+/* Estilos para ventanas inactivas */
+.os_window.inactive .os_window_header {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.os_window.inactive .os_window_content {
+    opacity: 1;
+}
+
+/* Estilos para ventanas activas */
+.os_window.active .os_window_header {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.os_window.active .os_window_content {
+    opacity: 1;
+}
+
+/* Remover opacidad general de la ventana */
+.os_window.inactive {
+    transition: none;
+}
+
+.os_window.active {
+    transition: none;
+}
+
+/* Estilos para el feedback visual del snap */
+.os_window.snapping {
+    transition: transform 0.5s cubic-bezier(0.2, 0.82, 0.2, 1),
+                width 0.5s cubic-bezier(0.2, 0.82, 0.2, 1),
+                left 0.5s cubic-bezier(0.2, 0.82, 0.2, 1),
+                right 0.5s cubic-bezier(0.2, 0.82, 0.2, 1);
+    filter: brightness(0.95);
+}
+
+.os_window.snapping::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid rgba(0, 122, 255, 0.4);
+    border-radius: 14px;
+    pointer-events: none;
+    animation: snapPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes snapPulse {
+    0% { border-color: rgba(0, 122, 255, 0.4); }
+    50% { border-color: rgba(0, 122, 255, 0.6); }
+    100% { border-color: rgba(0, 122, 255, 0.4); }
+}
+
+/* Indicadores de snap */
+.snap-previews-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.snap-preview {
+    position: absolute;
+    background-color: rgba(0, 122, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    top: 0;
+    height: 100%;
+}
+
+.snap-preview.left {
+    left: 0;
+    width: 50%;
+}
+
+.snap-preview.right {
+    right: 0;
+    width: 50%;
+}
+
+.snap-preview.visible {
+    opacity: 1;
+}
+
+/* Botón de maximizar con efecto de snap */
+.os_window_control_maximize.snapping {
+    background-color: #007AFF;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.os_window_control_maximize.snapping::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: all 0.2s ease;
+}
+
+/* Transiciones para dock y navbar */
+.os_dock {
+    transition: transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                bottom 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_navbar {
+    transition: transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_workarea {
+    transition: top 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                bottom 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+/* Animaciones para ocultar/mostrar dock y navbar */
+.os_dock.hiding {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+.os_navbar.hiding {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.os_dock.showing {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.os_navbar.showing {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Mejorar transición de desmaximización */
+@keyframes windowUnmaximize {
+    0% {
+        transform: scale(1);
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        filter: blur(0);
+    }
+    50% {
+        transform: scale(0.98);
+        border-radius: 7px;
+        filter: blur(1px);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: 14px;
+        width: var(--original-width);
+        height: var(--original-height);
+        left: var(--original-left);
+        top: var(--original-top);
+        filter: blur(0);
+    }
+}
+
+.os_window.unmaximizing {
+    animation: windowUnmaximize 0.4s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+    will-change: transform, width, height, left, top, border-radius, filter;
+}
+
+
+/* Start Menu - Visible por defecto */
+.os_application_start {
+    background-color: rgba(32, 32, 32, 0.6);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    padding: 12px;
+    border-radius: 10px;
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    display: none;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 900;
+    width: 90%;
+    max-width: 600px;
+    min-height: 400px;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                visibility 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.os_application_start.visible {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    animation: startMenuOpen 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+.os_application_start.closing {
+    animation: startMenuClose 0.3s cubic-bezier(0.2, 0.82, 0.2, 1) forwards;
+}
+
+@keyframes startMenuOpen {
+    0% {
+        transform: translateX(-50%) translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes startMenuClose {
+    0% {
+        transform: translateX(-50%) translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-50%) translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+}
+
+.os_application_start_nav {
+    height: 32px;
+    background-color: rgba(15, 17, 18, 0.4);
+    border-radius: 6px;
+    display: flex;
+    margin-bottom: 12px;
+    width: 100%;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.os_application_start_nav_btn {
+    height: 100%;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    background-color: transparent;
+    border: 0;
+    flex: 1;
+    max-width: 150px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_application_start_nav_btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+}
+
+.os_application_start_nav_btn_active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.os_application_start_nav_btn_active::after {
+    transform: scaleX(1);
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.os_application_start_nav_btn > img {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+}
+
+.os_application_start_content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Estilos para las pestañas del menú de inicio */
+.os_application_start_tab {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                visibility 0.3s cubic-bezier(0.2, 0.82, 0.2, 1),
+                transform 0.3s cubic-bezier(0.2, 0.82, 0.2, 1);
+    transform: translateY(10px);
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.os_application_start_tab.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.os_application_start_tab::-webkit-scrollbar {
+    width: 8px;
+}
+
+.os_application_start_tab::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+}
+
+.os_application_start_tab::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.os_application_start_tab::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.os_application_start_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-auto-rows: 80px;
+    gap: 10px;
+    padding: 5px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.os_application_start_app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.os_application_start_app:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.os_application_start_app img {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 4px;
+}
+
+.os_application_start_app p {
+    font-size: 11px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.os_application_start_power {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+}
+
+.os_application_start_power_btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.os_application_start_power_btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.os_application_start_power_btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.os_application_start_power_btn p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.os_application_start_config {
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    line-height: 1.5;
+}
