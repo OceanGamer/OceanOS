@@ -83,17 +83,15 @@ async function loadPinnedApps() {
     pinnedAppsContainer.innerHTML = '';
 
     try {
-        // Leer las apps ancladas del menú de inicio
-        const userData = await window.pythonAPI.readFile('Data/OS/user.json');
-        const user = JSON.parse(userData);
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const user = JSON.parse(response.output);
         const pinnedApps = user.attachedStartMenuApps || [];
 
-        // Cargar la configuración de cada app anclada
         for (const packageName of pinnedApps) {
             try {
                 const configPath = `Apps/${packageName}/appConfig.json`;
-                const configData = await window.pythonAPI.readFile(configPath);
-                const config = JSON.parse(configData);
+                const configResponse = await executeSystemCommand(`rf ${configPath}`);
+                const config = JSON.parse(configResponse.output);
                 createAppButton(packageName, pinnedAppsContainer, config.appname, config.applogo);
             } catch (error) {
                 console.error(`Error loading config for pinned app ${packageName}:`, error);
@@ -109,14 +107,12 @@ async function loadAllApps() {
     allAppsContainer.innerHTML = '';
 
     try {
-        // Usar PowerShell para listar los directorios
-        const result = await window.pythonAPI.executePowerShell('Get-ChildItem -Path "Apps" -Directory | Select-Object -ExpandProperty Name');
-        if (!result.success) {
+        const response = await executeSystemCommand(`ls Apps`);
+        if (!response.success) {
             throw new Error('Error al listar directorios');
         }
 
-        // Limpiar los nombres de los directorios (eliminar \r y espacios)
-        const apps = result.stdout.split('\n')
+        const apps = response.output.split('\n')
             .map(app => app.trim())
             .filter(app => app !== '');
 
@@ -125,15 +121,14 @@ async function loadAllApps() {
         for (const app of apps) {
             try {
                 const configPath = `Apps/${app}/appConfig.json`;
-                const configData = await window.pythonAPI.readFile(configPath);
-                const config = JSON.parse(configData);
+                const configResponse = await executeSystemCommand(`rf ${configPath}`);
+                const config = JSON.parse(configResponse.output);
                 appConfigs.push({
                     packageName: app,
                     ...config
                 });
             } catch (error) {
                 console.error(`Error loading config for ${app}:`, error);
-                // Aún así creamos un botón con la información básica
                 appConfigs.push({
                     packageName: app,
                     appname: app,
@@ -142,10 +137,7 @@ async function loadAllApps() {
             }
         }
 
-        // Ordenar alfabéticamente
         appConfigs.sort((a, b) => a.appname.localeCompare(b.appname));
-
-        // Crear botones
         appConfigs.forEach(app => {
             createAppButton(app.packageName, allAppsContainer, app.appname, app.applogo);
         });
@@ -260,23 +252,16 @@ function setupPowerButtons() {
 
 async function pinAppStart(packageName) {
     try {
-        // Leer el archivo de usuario actual
-        const userData = await window.pythonAPI.readFile('Data/OS/user.json');
-        const user = JSON.parse(userData);
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const user = JSON.parse(response.output);
         
-        // Inicializar el array si no existe
         if (!user.attachedStartMenuApps) {
             user.attachedStartMenuApps = [];
         }
         
-        // Verificar si la app ya está anclada
         if (!user.attachedStartMenuApps.includes(packageName)) {
             user.attachedStartMenuApps.push(packageName);
-            
-            // Guardar los cambios
-            await window.pythonAPI.writeFile('Data/OS/user.json', JSON.stringify(user, null, 4));
-            
-            // Recargar las apps ancladas
+            await executeSystemCommand(`wf Data/OS/user.json | ${JSON.stringify(user, null, 4)}`);
             loadPinnedApps();
         }
     } catch (error) {
@@ -286,19 +271,12 @@ async function pinAppStart(packageName) {
 
 async function unpinAppStart(packageName) {
     try {
-        // Leer el archivo de usuario actual
-        const userData = await window.pythonAPI.readFile('Data/OS/user.json');
-        const user = JSON.parse(userData);
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const user = JSON.parse(response.output);
         
-        // Verificar si existe el array de apps ancladas
         if (user.attachedStartMenuApps) {
-            // Filtrar la app a desanclar
             user.attachedStartMenuApps = user.attachedStartMenuApps.filter(app => app !== packageName);
-            
-            // Guardar los cambios
-            await window.pythonAPI.writeFile('Data/OS/user.json', JSON.stringify(user, null, 4));
-            
-            // Recargar las apps ancladas
+            await executeSystemCommand(`wf Data/OS/user.json | ${JSON.stringify(user, null, 4)}`);
             loadPinnedApps();
         }
     } catch (error) {
@@ -308,8 +286,8 @@ async function unpinAppStart(packageName) {
 
 async function isAppPinned(packageName) {
     try {
-        const userData = await window.pythonAPI.readFile('Data/OS/user.json');
-        const user = JSON.parse(userData);
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const user = JSON.parse(response.output);
         return (user.attachedStartMenuApps || []).includes(packageName);
     } catch (error) {
         console.error('Error checking if app is pinned:', error);

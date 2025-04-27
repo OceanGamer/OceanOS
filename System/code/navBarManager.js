@@ -210,22 +210,28 @@ async function updateNetworkStatus(container) {
         container.appendChild(networkIndicator);
     }
 
-    const status = await window.pythonAPI.getNetworkStatus();
-    
-    if (status.status) {
-        if (status.ethernet && status.internet) {
+    try {
+        // Obtener estado WiFi
+        const wifiResponse = await executeSystemCommand('gwifi');
+        const wifiData = JSON.parse(wifiResponse.output);
+
+        // Obtener estado Ethernet
+        const ethernetResponse = await executeSystemCommand('gethernet');
+        const ethernetData = JSON.parse(ethernetResponse.output);
+
+        if (ethernetData.ethernet === "true" && ethernetData.internet === "true") {
             networkIndicator.style.backgroundImage = 'url(System/Images/Icons/network/ethernet_on.png)';
-            console.log('Red: Ethernet conectado' + (status.internet ? ' (con Internet)' : ' (sin Internet)'));
-        } else if (status.wifi && status.internet) {
+            console.log('Red: Ethernet conectado (con Internet)');
+        } else if (wifiData.wifi === "enabled" && wifiData.internet === "true") {
             networkIndicator.style.backgroundImage = 'url(System/Images/Icons/network/wifi_on.png)';
-            console.log('Red: WiFi conectado' + (status.internet ? ' (con Internet)' : ' (sin Internet)'));
+            console.log('Red: WiFi conectado (con Internet)');
         } else {
             networkIndicator.style.backgroundImage = 'url(System/Images/Icons/network/network_off.png)';
             console.log('Red: Sin conexión');
         }
-    } else {
+    } catch (error) {
         networkIndicator.style.backgroundImage = 'url(System/Images/Icons/network/network_off.png)';
-        console.log('Red: Error al obtener estado -', status.error);
+        console.log('Red: Error al obtener estado -', error);
     }
 }
 
@@ -239,15 +245,16 @@ async function updateVolumeStatus(container) {
         container.appendChild(volumeIndicator);
     }
 
-    const volume = await window.pythonAPI.getVolume();
+    const response = await executeSystemCommand('gvolume');
+    const volume = JSON.parse(response.output);
     
-    if (volume.muted) {
+    if (volume.muted === "[off]") {
         volumeIndicator.style.backgroundImage = 'url(System/Images/Icons/volume/volumeMute.png)';
         console.log('Volumen: Silenciado');
-    } else if (volume.level > 66) {
+    } else if (parseInt(volume.level) > 66) {
         volumeIndicator.style.backgroundImage = 'url(System/Images/Icons/volume/volumeHigh.png)';
         console.log('Volumen: Alto (' + volume.level + '%)');
-    } else if (volume.level > 33 && volume.level <= 66) {
+    } else if (parseInt(volume.level) > 33) {
         volumeIndicator.style.backgroundImage = 'url(System/Images/Icons/volume/volumeMedium.png)';
         console.log('Volumen: Medio (' + volume.level + '%)');
     } else {
@@ -263,23 +270,33 @@ async function updateBatteryStatus(container) {
         batteryIndicator = document.createElement('button');
         batteryIndicator.id = 'battery_indicator';
         batteryIndicator.className = 'os_navbar_osbtn';
+        batteryIndicator.style.color = "white";
         container.appendChild(batteryIndicator);
     }
 
-    const battery = await window.pythonAPI.getBatteryStatus();
-    
-    if (battery.status) {
-        batteryIndicator.textContent = `${battery.percent}%`;
-        if (battery.power_plugged) {
-            batteryIndicator.classList.add('charging');
-            console.log('Batería: ' + battery.percent + '% (Cargando)');
+    try {
+        const response = await executeSystemCommand('gbattery');
+        const battery = JSON.parse(response.output);
+
+        if (battery.has_battery) {
+            // Caso con batería
+            batteryIndicator.textContent = `${battery.percent}%`;
+            if (battery.power_plugged === "1") {
+                batteryIndicator.classList.add('charging');
+                console.log('Batería: ' + battery.percent + '% (Cargando)');
+            } else {
+                batteryIndicator.classList.remove('charging');
+                console.log('Batería: ' + battery.percent + '%');
+            }
         } else {
-            batteryIndicator.classList.remove('charging');
-            console.log('Batería: ' + battery.percent + '%');
+            // Caso sin batería (solo fuente de poder)
+            batteryIndicator.textContent = "AC";
+            batteryIndicator.classList.add('charging');
+            console.log('Sistema conectado a fuente de poder (sin batería)');
         }
-    } else {
+    } catch (error) {
         batteryIndicator.style.display = 'none';
-        console.log('Batería: No disponible');
+        console.log('Error al obtener estado de energía:', error);
     }
 }
 
@@ -293,19 +310,31 @@ async function updateBluetoothStatus(container) {
         container.appendChild(bluetoothIndicator);
     }
 
-    const bluetooth = await window.pythonAPI.getBluetoothStatus();
-    bluetoothIndicator.style.display = bluetooth.available ? 'block' : 'none';
-    bluetoothIndicator.classList.toggle('active', bluetooth.enabled);
-    
-    if (bluetooth.available) {
-        console.log('Bluetooth: ' + (bluetooth.available ? 'Activado' : 'Desactivado'));
-        bluetoothIndicator.style.backgroundImage = 'url(System/Images/Icons/bluetooth/bluetooth.png)'
-    } else {
+    try {
+        const response = await executeSystemCommand('gbluetooth');
+        const bluetooth = JSON.parse(response.output);
+
+        bluetoothIndicator.style.display = 'block';
+        bluetoothIndicator.classList.toggle('active', bluetooth.enabled === "true");
+        bluetoothIndicator.style.backgroundImage = 'url(System/Images/Icons/bluetooth/bluetooth.png)';
+        console.log('Bluetooth: ' + (bluetooth.enabled === "true" ? 'Activado' : 'Desactivado'));
+    } catch (error) {
+        bluetoothIndicator.style.display = 'none';
         console.log('Bluetooth: No disponible');
     }
 }
 
-// Actualizar indicadores cada 5 segundos
-//setInterval(updateSystemIndicators, 5000);
+// Actualizar batería y volumen cada 1 segundo
+setInterval(() => {
+    updateBatteryStatus(document.getElementById('os_navbar_control'));
+    updateVolumeStatus(document.getElementById('os_navbar_control'));
+}, 1000);
+
+// Actualizar red y Bluetooth cada 5 segundos
+setInterval(() => {
+    updateNetworkStatus(document.getElementById('os_navbar_control'));
+    updateBluetoothStatus(document.getElementById('os_navbar_control'));
+}, 5000);
+
 // Actualizar inmediatamente al cargar
 updateSystemIndicators();

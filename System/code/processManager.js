@@ -2,30 +2,33 @@ let Process = []
 let countid = 1000	
 
 async function StartProcess(packageName) {
-    let appPath = `Apps/${packageName}`
+    let appPath = `Apps/${packageName}`;
     try {
-        // Verificar si existe la carpeta de la aplicación usando el backend
-        const exists = await window.pythonAPI.checkFileExists(appPath);
-        
+        // Verificar si existe la carpeta de la aplicación usando executeSystemCommand
+        const existsResponse = await executeSystemCommand(`de ${appPath}`);
+        const exists = existsResponse.output.trim() === "true";
+
         if (exists) {
-            // Leer y parsear el archivo de configuración usando el backend
-            let configPath = `${appPath}/appConfig.json`
-            let configData = JSON.parse(await window.pythonAPI.readFile(configPath))
-            
+            // Leer y parsear el archivo de configuración
+            let configPath = `${appPath}/appConfig.json`;
+            let configResponse = await executeSystemCommand(`rf ${configPath}`);
+            let configData = JSON.parse(configResponse.output);
+
             // Extraer datos de configuración
-            let appName = configData.appname
-            let appLogo = configData.applogo  
-            let width = configData.width
-            let height = configData.height
-            let minWidth = configData.minWidth
-            let minHeight = configData.minHeight
-            let resizable = configData.resizable
-            let html = configData.index
-            let navMenus = configData.navMenus || [] // Añadir los menús del navbar
-            
+            let appName = configData.appname;
+            let appLogo = configData.applogo;
+            let width = configData.width;
+            let height = configData.height;
+            let minWidth = configData.minWidth;
+            let minHeight = configData.minHeight;
+            let resizable = configData.resizable;
+            let html = configData.index;
+            let navMenus = configData.navMenus || [];
+            let webApp = configData.webApp || false;
+
             // Crear objeto con los datos de la aplicación
             let processData = {
-                pid: countid++, // ID único que se incrementa
+                pid: countid++,
                 packageName: packageName,
                 appName: appName,
                 appLogo: appLogo,
@@ -41,116 +44,110 @@ async function StartProcess(packageName) {
                 focused: false,
                 snapped: false,
                 created: new Date().toISOString(),
-                lastPosition: {
-                    left: 0,
-                    top: 0
-                },
+                lastPosition: { left: 0, top: 0 },
                 lastHeight: height,
                 lastWidth: width,
-                navMenus: navMenus // Añadir los menús al proceso
-            }
-            
+                navMenus: navMenus
+            };
+
             // Agregar el proceso al array Process
-            Process.push(processData)
-            
-            // Mostrar información del array y el proceso
-            console.log('Array Process completo:', Process)
-            console.log('Proceso actual:', Process[Process.length - 1])
-            
+            Process.push(processData);
+            console.log('Array Process completo:', Process);
+            console.log('Proceso actual:', Process[Process.length - 1]);
+
             // Obtener el div os_workarea
-            let workarea = document.querySelector('.os_workarea')
-            
+            let workarea = document.querySelector('.os_workarea');
+
             // Cargar el template de la ventana
-            let windowHTML = await window.pythonAPI.readFile('System/html/os_window.html')
-            
+            let windowHTMLResponse = await executeSystemCommand(`rf System/html/os_window.html`);
+            let windowHTML = windowHTMLResponse.output;
+
             // Crear elemento temporal para manipular el HTML
-            let temp = document.createElement('div')
-            temp.innerHTML = windowHTML
-            
+            let temp = document.createElement('div');
+            temp.innerHTML = windowHTML;
+
             // Configurar la ventana
-            let windowElement = temp.firstElementChild
-            windowElement.id = `window_${processData.pid}` // ID único basado en el pid
-            windowElement.style.width = width + 'px'
-            windowElement.style.height = height + 'px'
-            
+            let windowElement = temp.firstElementChild;
+            windowElement.id = `window_${processData.pid}`;
+            windowElement.style.width = width + 'px';
+            windowElement.style.height = height + 'px';
+
             // Centrar la ventana inicialmente
             const workareaWidth = workarea.clientWidth;
             const workareaHeight = workarea.clientHeight;
-            
             const left = (workareaWidth - width) / 2;
             const top = (workareaHeight - height) / 2;
-            
+
             windowElement.style.left = left + 'px';
             windowElement.style.top = top + 'px';
-            
-            // Guardar posición inicial
             processData.lastPosition.left = left;
             processData.lastPosition.top = top;
-            
+
             // Agregar funcionalidad de redimensionamiento si está habilitada
             if (resizable) {
-                windowElement.style.resize = 'both'
-                windowElement.style.overflow = 'auto'
+                windowElement.style.resize = 'both';
+                windowElement.style.overflow = 'auto';
                 windowElement.style.minWidth = minWidth + 'px';
                 windowElement.style.minHeight = minHeight + 'px';
             }
-            
+
             // Configurar el título
-            windowElement.querySelector('#os_window_title').textContent = appName
-            
+            windowElement.querySelector('#os_window_title').textContent = appName;
+
             // Crear y configurar el iframe
-            let iframe = document.createElement('iframe')
-            iframe.src = `${appPath}/appContainer/${html}`
-            iframe.style.width = '100%'
-            iframe.style.height = '100%'
-            iframe.style.border = 'none'
-            
-            // Asegurar que la ventana principal tenga el foco
-            window.focus()
-            
-            // Variable para rastrear si el mouse está sobre el iframe
-            let isMouseOver = false
-            
-            // Agregar eventos para detectar interacciones con el iframe
-            iframe.addEventListener('mouseenter', () => {
-                isMouseOver = true
-            })
-            
-            iframe.addEventListener('mouseleave', () => {
-                isMouseOver = false
-            })
-            
+            let iframe
+            if (webApp) {
+                iframe = document.createElement('webview');
+    
+                // Configuración CORRECTA de atributos (usando setAttribute)
+                iframe.setAttribute('nodeintegration', 'false');
+                iframe.setAttribute('plugins', 'yes');
+                iframe.setAttribute('webpreferences', 'allowRunningInsecureContent, javascript=yes');
+                iframe.setAttribute('allowpopups', 'yes');  // Importante para permitir ventanas emergentes
+                iframe.setAttribute('disablewebsecurity', 'false');  // No recomendado activarlo
+                iframe.setAttribute('useragent', 'Mozilla/5.0 (OceanOS 1.0; Ocean64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+                
+                // Estilos básicos
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.display = 'inline-flex';
+                
+                iframe.src = html;
+            }else{
+                iframe = document.createElement('iframe');
+                iframe.src = `${appPath}/appContainer/${html}`;
+            }
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+
+            // Eventos del iframe
+            let isMouseOver = false;
+            iframe.addEventListener('mouseenter', () => isMouseOver = true);
+            iframe.addEventListener('mouseleave', () => isMouseOver = false);
             iframe.addEventListener('mousedown', () => {
-                if (isMouseOver) {
-                    focusWindow(processData.pid)
-                }
-            })
-            
-            iframe.addEventListener('focus', () => {
-                focusWindow(processData.pid)
-            })
-            
-            // Agregar evento blur para detectar cuando el foco sale de la ventana
+                if (isMouseOver) focusWindow(processData.pid);
+            });
+            iframe.addEventListener('focus', () => focusWindow(processData.pid));
+
+            // Evento blur para detectar cuando el foco sale de la ventana
             window.addEventListener('blur', () => {
                 setTimeout(() => {
-                    if (document.activeElement === iframe) {
-                        focusWindow(processData.pid)
-                    }
-                })
-            }, { capture: true })
-            
+                    if (document.activeElement === iframe) focusWindow(processData.pid);
+                });
+            }, { capture: true });
+
             // Insertar el iframe en el contenido de la ventana
-            let windowContent = windowElement.querySelector('#os_window_content')
-            windowContent.appendChild(iframe)
-            
+            let windowContent = windowElement.querySelector('#os_window_content');
+            windowContent.appendChild(iframe);
+
             // Agregar manejadores de eventos a los botones de control
-            let minimizeBtn = windowElement.querySelector('.os_window_control_minimize')
-            let maximizeBtn = windowElement.querySelector('.os_window_control_maximize')
-            let closeBtn = windowElement.querySelector('.os_window_control_close')
-            
-            minimizeBtn.onclick = () => minimizeWindow(processData.pid)
+            let minimizeBtn = windowElement.querySelector('.os_window_control_minimize');
+            let maximizeBtn = windowElement.querySelector('.os_window_control_maximize');
+            let closeBtn = windowElement.querySelector('.os_window_control_close');
+
+            minimizeBtn.onclick = () => minimizeWindow(processData.pid);
             maximizeBtn.onclick = () => {
-                // Si la ventana está en algún modo especial, volver a normal
                 if (processData.maximized || processData.withoutdock || processData.fulscreen) {
                     processData.maximized = true;
                     maximizeWindow(processData.pid);
@@ -158,49 +155,37 @@ async function StartProcess(packageName) {
                     processData.fulscreen = false;
                     processData.maximized = false;
                 } else {
-                    // Guardar posición actual antes de maximizar
                     processData.lastPosition.left = parseInt(windowElement.style.left);
                     processData.lastPosition.top = parseInt(windowElement.style.top);
-                    
                     maximizeWindow(processData.pid);
                 }
-            }
-            closeBtn.onclick = () => closeProcess(processData.pid)
-            
-            // Agregar menú contextual al botón de maximizar
+            };
+            closeBtn.onclick = () => closeProcess(processData.pid);
+
+            // Menú contextual al botón de maximizar
             maximizeBtn.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 const menu = ContextMenuManager.createNewContextMenu(maximizeBtn, e.clientX, e.clientY);
-                
-                ContextMenuManager.addNewContextBtn('Ventana Completa', null, () => {
-                    fullScreenWindow(processData.pid);
-                });
-
-                ContextMenuManager.addNewContextBtn('Ventana Maximizada sin dock', null, () => {
-                    maximizeWindowWithoutDock(processData.pid);
-                });
-
-                ContextMenuManager.addNewContextBtn('Ventana Maximizada', null, () => {
-                    maximizeWindow(processData.pid);
-                });
+                ContextMenuManager.addNewContextBtn('Ventana Completa', null, () => fullScreenWindow(processData.pid));
+                ContextMenuManager.addNewContextBtn('Ventana Maximizada sin dock', null, () => maximizeWindowWithoutDock(processData.pid));
+                ContextMenuManager.addNewContextBtn('Ventana Maximizada', null, () => maximizeWindow(processData.pid));
             });
-            
+
             // Insertar la ventana en el área de trabajo
-            workarea.appendChild(windowElement)
+            workarea.appendChild(windowElement);
 
             setTimeout(() => {
                 windowElement.classList.remove('opening');
             }, 300);
-            
-            // Abrir la app en el dock
-            focusWindow(processData.pid)
+
+            // Abrir la app en el dock y enfocar
+            focusWindow(processData.pid);
             openDockApp(processData.pid, packageName, appLogo);
-            
         } else {
-            console.log("Esta app no está instalada")
+            console.log("Esta app no está instalada");
         }
-    } catch(err) {
-        console.log(`Error al iniciar la aplicación ${appPath}: ${err}`)
+    } catch (err) {
+        console.log(`Error al iniciar la aplicación ${appPath}: ${err}`);
     }
 }
 
@@ -641,3 +626,19 @@ function focusWindow(pid) {
         }
     }
 }
+
+window.ProcessManager = {
+    getProcesses: () => Process.map(p => ({
+        pid: p.pid,
+        name: p.appName,
+        package: p.packageName
+    })),
+
+    startProcess: async (packageName) => {
+        await StartProcess(packageName);
+    },
+
+    killProcess: (pid) => {
+        closeProcess(pid);
+    }
+};

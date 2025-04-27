@@ -1,294 +1,159 @@
-class SystemAPI {
-    constructor() {
-        this.commands = new Map();
-        this.appWindows = new Map(); // Mapeo de PID a ventanas
-        this.clipboard = ''; // Almacenamiento temporal del portapapeles
+async function executeSystemCommand(bash) {
+    // Dividir el bash en comando y argumento (separados por el primer espacio)
+    const [command, ...args] = bash.trim().split(/\s+/);
+    const argument = args.join(' '); // Unir los argumentos restantes por si había más espacios
 
-        // Registrar comandos básicos del sistema
-        this.registerCommand('help', this.cmdHelp.bind(this));
-        this.registerCommand('clear', this.cmdClear.bind(this));
-        this.registerCommand('ls', this.cmdLs.bind(this));
-        this.registerCommand('ps', this.cmdPs.bind(this));
-        this.registerCommand('kill', this.cmdKill.bind(this));
-        this.registerCommand('open', this.cmdOpen.bind(this));
-        this.registerCommand('echo', this.cmdEcho.bind(this));
-        this.registerCommand('pwd', this.cmdPwd.bind(this));
-        this.registerCommand('copy', this.cmdCopy.bind(this));
-        this.registerCommand('paste', this.cmdPaste.bind(this));
-        this.registerCommand('powershell', this.cmdPowershell.bind(this));
+    try {
+        let response;
+        
+        switch (command.toLowerCase()) {
+            case "help":
+                response = `
+                Comandos Disponibles:
+                - ls [ubicacion] - Muestra el contenido dentro de una ubicación.
+                - rf [ubicacion] - Lee el contenido de un archivo.
+                - wf [ubicacion | contenido] - Modifica el contenido de un archivo.
+                - fe [ubicacion] - Verifica si un archivo existe.
+                - de [ubicacion] - Verifica si un directorio existe.
+                - gvolume - Obtiene el volumen y estado de silencio del sistema.
+                - gwifi - Obtiene el estado del WiFi y conexión a internet.
+                - gthernet - Obtiene el estado de la conexión Ethernet.
+                - gbluetooth - Obtiene el estado del Bluetooth.
+                - gbattery - Obtiene el estado de la batería.
+                - cls - Limpia la terminal
+                - ps - Lista procesos activos
+                - ps start [app] - Inicia una aplicación
+                - ps kill [pid] - Termina un proceso
+                `;
+                break;
 
-        // Escuchar mensajes de la terminal
-        window.addEventListener('message', this.handleTerminalMessage.bind(this));
-    }
+            case "ls":
+                response = await window.systemAPI.executeBash(`ls ${argument || ''}`.trim());
+                break;
 
-    handleTerminalMessage(event) {
-        if (event.data.type === 'terminal-command') {
-            const command = event.data.command.trim();
-            const commandName = command.split(' ')[0];
+            case "rf":
+                response = await window.systemAPI.executeBash(`cat ${argument}`);
+                break;
+                    
+            case "wf":
+                const [filePath, content] = argument.split('|').map(s => s.trim());
+                response = await window.systemAPI.executeBash(`echo '${content}' > ${filePath}`);
+                break;
+                    
+            case "fe":
+                response = await window.systemAPI.executeBash(`[ -f "${argument}" ] && echo "true" || echo "false"`);
+                break;
+                    
+            case "de":
+                response = await window.systemAPI.executeBash(`[ -d "${argument}" ] && echo "true" || echo "false"`);
+                break;
+
+            case "gvolume":
+                response = await window.systemAPI.executeBash(`
+                    volume=$(amixer get Master | grep -oE '[0-9]+%' | head -1 | tr -d '%');
+                    muted=$(amixer get Master | grep -oE '\[off\]' | head -1);
+                    echo "{\\"level\\": \\"$volume\\", \\"muted\\": \\"$muted\\"}"
+                `);
+                break;
+
+            case "gwifi":
+                response = await window.systemAPI.executeBash(`
+                    wifi_status=$(nmcli radio wifi);
+                    internet_status=$(ping -c 1 google.com &> /dev/null && echo "true" || echo "false");
+                    echo "{\\"wifi\\": \\"$wifi_status\\", \\"internet\\": \\"$internet_status\\"}"
+                `);
+                break;
             
-            // No crear procesos para comandos básicos
-            const isBasicCommand = ['ps', 'help', 'pwd', 'ls', 'clear', 'echo', 'kill'].includes(commandName);
-            
-            this.executeCommand(command, {
-                writeLine: (text) => {
-                    event.source.postMessage({
-                        type: 'command-response',
-                        output: text
-                    }, '*');
-                },
-                writeError: (text) => {
-                    event.source.postMessage({
-                        type: 'command-response',
-                        error: text
-                    }, '*');
-                },
-                writeSuccess: (text) => {
-                    event.source.postMessage({
-                        type: 'command-response',
-                        success: text
-                    }, '*');
-                },
-                clear: () => {
-                    event.source.postMessage({
-                        type: 'command-response',
-                        clear: true
-                    }, '*');
-                }
-            }).catch(error => {
-                event.source.postMessage({
-                    type: 'command-response',
-                    error: error.message
-                }, '*');
-            });
-        }
-    }
+            case "gethernet":
+                response = await window.systemAPI.executeBash(`
+                    ethernet_status=$(ip link show eth0 | grep -q "state UP" && echo "true" || echo "false");
+                    internet_status=$(ping -c 1 google.com &> /dev/null && echo "true" || echo "false");
+                    echo "{\\"ethernet\\": \\"$ethernet_status\\", \\"internet\\": \\"$internet_status\\"}"
+                `);
+                break;
+                
+            case "gbluetooth":
+                response = await window.systemAPI.executeBash(`
+                    bluetooth_status=$(bluetoothctl show | grep -q "Powered: yes" && echo "true" || echo "false");
+                    echo "{\\"enabled\\": \\"$bluetooth_status\\"}"
+                `);
+                break;
 
-    // Registro de comandos
-    registerCommand(name, handler) {
-        this.commands.set(name, handler);
-    }
+            case "gbattery":
+                response = await window.systemAPI.executeBash(`
+                    # Verificar si existe batería
+                    if [ -d /sys/class/power_supply/BAT* ]; then
+                        battery_path=$(ls /sys/class/power_supply/ | grep BAT | head -1);
+                        battery_percent=$(cat /sys/class/power_supply/$battery_path/capacity);
+                        power_plugged=$(cat /sys/class/power_supply/AC/online);
+                        echo "{\\"has_battery\\": true, \\"percent\\": \\"$battery_percent\\", \\"power_plugged\\": \\"$power_plugged\\"}";
+                    else
+                        # Solo fuente de poder (sin batería)
+                        power_plugged=$(cat /sys/class/power_supply/AC/online 2>/dev/null || echo "1");
+                        echo "{\\"has_battery\\": false, \\"power_plugged\\": \\"$power_plugged\\"}";
+                    fi
+                `);
+                break;
 
-    // Ejecución de comandos
-    async executeCommand(command, terminal) {
-        const args = command.trim().split(/\s+/);
-        const cmd = args[0].toLowerCase();
-        const cmdArgs = args.slice(1);
+            case "cls":
+                response = { special: "clear-terminal" };
+                break;
 
-        if (this.commands.has(cmd)) {
-            try {
-                await this.commands.get(cmd)(cmdArgs, terminal);
-            } catch (error) {
-                terminal.writeError(`Error ejecutando ${cmd}: ${error.message}`);
-                throw error;
-            }
-        } else {
-            terminal.writeError(`Comando no encontrado: ${cmd}`);
-            throw new Error(`Comando no encontrado: ${cmd}`);
-        }
-    }
-
-    formatTime(milliseconds) {
-        const seconds = Math.floor(milliseconds / 1000);
-        if (seconds < 60) {
-            return `${seconds}s`;
-        }
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) {
-            return `${minutes}m ${seconds % 60}s`;
-        }
-        const hours = Math.floor(minutes / 60);
-        return `${hours}h ${minutes % 60}m`;
-    }
-
-    // Comandos del sistema
-    async cmdHelp(args, terminal) {
-        terminal.writeLine('Comandos disponibles:');
-        terminal.writeLine('  help               - Muestra esta ayuda');
-        terminal.writeLine('  clear              - Limpia la terminal');
-        terminal.writeLine('  ls                 - Lista archivos y directorios');
-        terminal.writeLine('  ps                 - Muestra procesos en ejecución');
-        terminal.writeLine('  kill [pid]         - Termina un proceso');
-        terminal.writeLine('  open [app-package] - Abre una aplicación');
-        terminal.writeLine('  echo [mensaje]     - Muestra un mensaje');
-        terminal.writeLine('  pwd                - Muestra el directorio actual');
-    }
-
-    async cmdClear(args, terminal) {
-        terminal.clear();
-    }
-
-    async cmdLs(args, terminal) {
-        try {
-            const path = args[0] || '.';
-            // Usar Join-Path para manejar rutas correctamente
-            const command = `
-                $path = '${path}';
-                if (Test-Path $path) {
-                    $items = Get-ChildItem -Path $path | ForEach-Object {
-                        @{
-                            Name = $_.Name;
-                            FullName = $_.FullName;
-                            Attributes = $_.Attributes.value__;
-                            Extension = $_.Extension;
-                            IsDirectory = $_.PSIsContainer
-                        }
-                    }
-                    if ($items) {
-                        $items | ConvertTo-Json
-                    } else {
-                        "[]"
-                    }
+            case "ps":
+                if (!argument) {
+                    // Listar procesos
+                    response = JSON.stringify(window.ProcessManager.getProcesses(), null, 2);
+                } else if (args[0] === "start" && args[1]) {
+                    // Iniciar proceso
+                    const packageName = args[1];
+                    await window.ProcessManager.startProcess(packageName);
+                    response = `Aplicación ${packageName} iniciada`;
+                } else if (args[0] === "kill" && args[1]) {
+                    // Terminar proceso
+                    const pid = parseInt(args[1]);
+                    window.ProcessManager.killProcess(pid);
+                    response = `Proceso ${pid} terminado`;
                 } else {
-                    Write-Error "Path not found: $path"
+                    response = "Uso: ps [start|kill] [nombre/pid]";
                 }
-            `;
+                break;
             
-            const result = await window.pythonAPI.executePowerShell(command);
-            
-            if (result.success) {
-                try {
-                    let files = JSON.parse(result.stdout);
-                    // Si solo hay un archivo, convertirlo en array
-                    if (!Array.isArray(files)) {
-                        files = [files];
-                    }
-
-                    // Enviar la salida JSON completa al terminal
-                    terminal.writeLine(JSON.stringify(files));
-
-                    // También mostrar los nombres de manera legible
-                    files.forEach(file => {
-                        terminal.writeLine(`${file.IsDirectory ? '[DIR]' : '     '} ${file.Name}`);
-                    });
-                } catch (error) {
-                    // Si no se puede parsear como JSON, mostrar la salida directa
-                    terminal.writeLine(result.stdout);
-                }
-            } else {
-                terminal.writeError(`Error al listar directorio: ${result.stderr}`);
-            }
-        } catch (error) {
-            terminal.writeError(`Error: ${error.message}`);
-        }
-    }
-
-    async cmdPs(args, terminal) {
-        // Obtener procesos del appsManager
-        const apps = Process;
-        
-        terminal.writeLine('PID    NOMBRE     TIEMPO           PAQUETE');
-        terminal.writeLine('----------------------------------------------------');
-        
-        for (const process of apps) {
-            const now = new Date();
-            const created = new Date(process.created);
-            const runtime = now - created;
-            const timeStr = this.formatTime(runtime);
-            
-            // Formatear la línea de salida
-            terminal.writeLine(
-                `${process.pid.toString().padEnd(7)}${process.appName.slice(0,13).padEnd(14)}${timeStr.padEnd(14)}${process.packageName}`
-            );
-        }
-    }
-
-    async cmdKill(args, terminal) {
-        if (!args.length) {
-            terminal.writeError('Uso: kill <pid>');
-            return;
-        }
-
-        const pid = parseInt(args[0]);
-        
-        // Buscar el proceso en el array Process
-        const processIndex = Process.findIndex(p => p.pid === pid);
-        
-        if (processIndex !== -1) {
-            // Usar closeProcess para terminar el proceso
-            closeProcess(pid);
-            terminal.writeLine(`Proceso ${pid} terminado correctamente`);
-            return;
+                
+            // Añade más comandos según necesites
+            default:
+                response = `Error: Comando '${command}' no reconocido. Escribe 'help' para ver los comandos disponibles.`;
         }
         
-        terminal.writeError(`No se encontró el proceso ${pid}`);
-    }
-
-    async cmdOpen(args, terminal) {
-        if (!args.length) {
-            terminal.writeError('Uso: open <app_id>');
-            return;
-        }
-
-        const appId = args[0];
-        try {
-            if (typeof window.openApp !== 'function') {
-                throw new Error('El sistema de aplicaciones no está disponible');
-            }
-
-            await window.openApp(appId);
-            terminal.writeSuccess(`Aplicación ${appId} abierta correctamente`);
-        } catch (error) {
-            terminal.writeError(error.message);
-        }
-    }
-
-    async cmdEcho(args, terminal) {
-        terminal.writeLine(args.join(' '));
-    }
-
-    async cmdPwd(args, terminal) {
-        terminal.writeLine('/'); // Por ahora solo mostramos la raíz
-    }
-
-    async cmdCopy(args, terminal) {
-        if (!args.length) {
-            terminal.writeError('Uso: copy <texto>');
-            return;
-        }
-
-        this.clipboard = args.join(' ');
-        terminal.writeSuccess('Texto copiado al portapapeles');
-    }
-
-    async cmdPaste(args, terminal) {
-        if (!this.clipboard) {
-            terminal.writeError('No hay texto en el portapapeles');
-            return;
-        }
-
-        terminal.writeLine(this.clipboard);
-    }
-
-    async cmdPowershell(args, terminal) {
-        try {
-            const command = args[0];
-            const result = await window.pythonAPI.executePowerShell(command);
-            
-            if (result.success) {
-                terminal.writeLine(result.stdout);
-            } else {
-                terminal.writeError(`Error: ${result.stderr}`);
-            }
-        } catch (error) {
-            terminal.writeError(`Error: ${error.message}`);
-        }
-    }
-
-    // Función para copiar texto desde cualquier parte del sistema
-    copyText(text) {
-        this.clipboard = text;
-    }
-
-    // Función para obtener el texto del portapapeles
-    pasteText() {
-        return this.clipboard;
+        return response;
+        
+    } catch (error) {
+        return `Error: ${error.message}`;
     }
 }
 
-// Crear instancia global
-window.systemAPI = new SystemAPI();
+// Exponer la función executeSystemCommand en el ámbito global
+window.systemAPI = {
+    executeSystemCommand: executeSystemCommand
+};
 
-// Exportar la API para uso en Electron
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SystemAPI;
-} 
+// Manejar mensajes desde iframes
+window.addEventListener('message', async (event) => {
+    if (event.data.type === 'systemAPI-command') {
+        const { command, messageId } = event.data;
+        
+        try {
+            const response = await executeSystemCommand(command);
+            event.source.postMessage({
+                type: 'systemAPI-response',
+                messageId: messageId,
+                response: response
+            }, '*');
+        } catch (error) {
+            event.source.postMessage({
+                type: 'systemAPI-response',
+                messageId: messageId,
+                error: error.message
+            }, '*');
+        }
+    }
+});

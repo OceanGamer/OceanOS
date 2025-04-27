@@ -1,10 +1,10 @@
 async function isAppDockPinned(packageName) {
     try {
-        const userData = await window.pythonAPI.readFile('Data/OS/user.json');
-        const user = JSON.parse(userData);
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const user = JSON.parse(response.output);
         return (user.attachedApps || []).includes(packageName);
     } catch (error) {
-        console.error('Error checking if app is dock pinned:', error);
+        console.error('Error al verificar si la app está anclada:', error);
         return false;
     }
 }
@@ -94,12 +94,9 @@ function openDockApp(pid, packageName, appLogo) {
 
 async function loadDockApps() {
     try {
-        // Leer el archivo user.json
-        const userData = JSON.parse(await window.pythonAPI.readFile('Data/OS/user.json'));
-        
-        // Verificar si hay apps ancladas
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const userData = JSON.parse(response.output);
         if (userData.attachedApps && userData.attachedApps.length > 0) {
-            // Crear cada app anclada
             for (const packageName of userData.attachedApps) {
                 await createPinnedApp(packageName);
             }
@@ -111,40 +108,31 @@ async function loadDockApps() {
 
 async function createPinnedApp(packageName) {
     try {
-        // Leer la configuración de la app
         const appPath = `Apps/${packageName}`;
         const configPath = `${appPath}/appConfig.json`;
-        const configData = JSON.parse(await window.pythonAPI.readFile(configPath));
+        const response = await executeSystemCommand(`rf ${configPath}`);
+        const configData = JSON.parse(response.output);
         
-        // Obtener el logo y nombre de la app
         const appLogo = configData.applogo;
         const appName = configData.appname;
         const logoPath = `Apps/${packageName}/appContainer/${appLogo}`;
         
-        // Buscar el dock
         const dock = document.querySelector('.os_dock_obj');
         if (dock) {
-            // Crear el botón con la imagen y el evento click
             const button = document.createElement('button');
             button.id = `pinned_btn_${packageName}`;
-            button.className = 'os_dock_appbtn'; // Sin la clase os_dock_active
+            button.className = 'os_dock_appbtn';
             button.style.backgroundImage = `url(${logoPath})`;
-            button.title = appName; // Mostrar el nombre al pasar el mouse
+            button.title = appName;
             button.onclick = () => StartProcess(packageName);
             
-            // Agregar evento de clic derecho para el menú contextual
             button.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 const menu = ContextMenuManager.createNewContextMenu(button, e.clientX, e.clientY);
-                
-                // Agregar opciones al menú
                 ContextMenuManager.addNewContextBtn('Abrir nueva ventana', null, () => {
                     StartProcess(packageName);
                 });
-
-                ContextMenuManager.addContextMenuSeparator()
-
-                // Verificar si la aplicación está anclada
+                ContextMenuManager.addContextMenuSeparator();
                 isAppPinned(packageName).then(isPinned => {
                     if (isPinned) {
                         ContextMenuManager.addNewContextBtn('Desanclar aplicación del Inicio', null, () => {
@@ -156,22 +144,18 @@ async function createPinnedApp(packageName) {
                         });
                     }
                 });
-                
                 ContextMenuManager.addNewContextBtn('Desanclar aplicación del Dock', null, () => {
                     unpinApp(packageName);
                 });
             });
             
-            // Agregar div interno
             const innerDiv = document.createElement('div');
             button.appendChild(innerDiv);
             
-            // Insertar el botón a la izquierda del separador
             const separator = dock.querySelector('.verticalHr');
             if (separator) {
                 separator.before(button);
             } else {
-                // Si no hay separador, insertar al principio del dock
                 dock.insertBefore(button, dock.firstChild);
             }
         }
@@ -182,18 +166,11 @@ async function createPinnedApp(packageName) {
 
 async function pinApp(packageName) {
     try {
-        // Leer el archivo user.json
-        const userData = JSON.parse(await window.pythonAPI.readFile('Data/OS/user.json'));
-        
-        // Verificar si la app ya está anclada
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const userData = JSON.parse(response.output);
         if (!userData.attachedApps.includes(packageName)) {
-            // Añadir la app a la lista
             userData.attachedApps.push(packageName);
-            
-            // Guardar los cambios
-            await window.pythonAPI.writeFile('Data/OS/user.json', JSON.stringify(userData, null, 4));
-            
-            // Crear el botón anclado
+            await executeSystemCommand(`wf Data/OS/user.json | ${JSON.stringify(userData, null, 4)}`);
             createPinnedApp(packageName);
         }
     } catch (error) {
@@ -203,19 +180,12 @@ async function pinApp(packageName) {
 
 async function unpinApp(packageName) {
     try {
-        // Leer el archivo user.json
-        const userData = JSON.parse(await window.pythonAPI.readFile('Data/OS/user.json'));
-        
-        // Verificar si la app está anclada
+        const response = await executeSystemCommand(`rf Data/OS/user.json`);
+        const userData = JSON.parse(response.output);
         const appIndex = userData.attachedApps.indexOf(packageName);
         if (appIndex !== -1) {
-            // Eliminar la app de la lista
             userData.attachedApps.splice(appIndex, 1);
-            
-            // Guardar los cambios en user.json
-            await window.pythonAPI.writeFile('Data/OS/user.json', JSON.stringify(userData, null, 4));
-            
-            // Eliminar el botón del dock
+            await executeSystemCommand(`wf Data/OS/user.json | ${JSON.stringify(userData, null, 4)}`);
             const button = document.querySelector(`#pinned_btn_${packageName}`);
             if (button) {
                 button.remove();
