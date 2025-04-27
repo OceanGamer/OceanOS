@@ -14,9 +14,6 @@ class Terminal {
         window.parent.postMessage({
             type: 'terminal-ready'
         }, '*');
-
-        // Intentar acceder a la API del sistema
-        this.connectToSystemAPI();
     }
 
     connectToSystemAPI() {
@@ -147,36 +144,156 @@ class Terminal {
         this.isExecuting = true;
         this.writeLine(`$ ${command}`);
 
-        // Añadir al historial
         this.history.push(command);
         this.historyIndex = this.history.length;
 
         try {
-            if (this.systemAPI) {
-                console.log('Ejecutando comando directamente:', command);
-                await this.systemAPI.executeCommand(command, {
-                    writeLine: (text) => this.writeLine(text),
-                    writeError: (text) => this.writeError(text),
-                    writeSuccess: (text) => this.writeSuccess(text),
-                    clear: () => this.clear()
-                });
-            } else {
-                console.log('Enviando comando por mensaje:', command);
-                window.parent.postMessage({
-                    type: 'terminal-command',
-                    command: command,
-                    source: 'terminal'
-                }, '*');
+            const response = await this.sendSystemCommand(command);
+            
+            // Procesamiento especial por tipo de comando
+            const cmd = command.split(' ')[0].toLowerCase();
+            let displayText = '';
+
+            if (response.special === "clear-terminal") {
+                this.clear();
+                return;
             }
+
+            // Formateo según el tipo de comando
+            switch(cmd) {
+                case 'help':
+                    displayText = response.trim();
+                    break;
+
+                case 'ls':
+                    if (response.success === false) {
+                        displayText = `Error: No se pudo listar el directorio`;
+                    } else if (response.output) {
+                        displayText = response.output.replace(/\n/g, ' ');
+                    } else {
+                        displayText = JSON.stringify(response, null, 2);
+                    }
+                    break;
+
+                case 'ps':
+                    let processes;
+                    if (typeof response === 'string') {
+                        try {
+                            processes = JSON.parse(response);
+                        } catch {
+                            processes = response;
+                        }
+                    } else if (response.output) {
+                        try {
+                            processes = JSON.parse(response.output);
+                        } catch {
+                            processes = response.output;
+                        }
+                    } else {
+                        processes = response;
+                    }
+
+                    if (Array.isArray(processes)) {
+                        displayText = "pid  | name       | package\n";
+                        displayText += "-----|------------|-------------\n";
+                        displayText += processes.map(p => 
+                            `${p.pid.toString().padEnd(5)}| ${p.name.padEnd(11)}| ${p.package}`
+                        ).join('\n');
+                    } else {
+                        displayText = typeof processes === 'object' 
+                            ? JSON.stringify(processes, null, 2) 
+                            : processes;
+                    }
+                    break;
+
+                case 'gbattery':
+                case 'gwifi':
+                case 'gvolume':
+                case 'gbluetooth':
+                case 'gethernet':
+                    let status;
+                    if (response.output) {
+                        try {
+                            status = JSON.parse(response.output);
+                        } catch {
+                            status = response.output;
+                        }
+                    } else {
+                        status = response;
+                    }
+                    
+                    if (typeof status === 'object') {
+                        displayText = Object.entries(status)
+                            .map(([key, val]) => `${key}: ${val}`)
+                            .join('\n');
+                    } else {
+                        displayText = status;
+                    }
+                    break;
+
+                case 'de':
+                case 'fe':
+                    if (response.output === "true" || response.output === "false") {
+                        displayText = response.output === "true" ? "Existe" : "No existe";
+                    } else {
+                        displayText = response.output || JSON.stringify(response);
+                    }
+                    break;
+
+                case 'rf':
+                    if (response.success && response.output) {
+                        displayText = response.output;
+                    } else {
+                        displayText = `Error: ${response.error || 'No se pudo leer el archivo'}`;
+                    }
+                    break;
+
+                default:
+                    if (response.success === false) {
+                        displayText = `Error: ${response.error || 'Comando falló'}`;
+                    } else if (response.output) {
+                        displayText = response.output;
+                    } else {
+                        displayText = JSON.stringify(response, null, 2);
+                    }
+            }
+
+            // Mostrar la respuesta formateada
+            if (displayText) {
+                this.writeLine(displayText);
+            }
+
         } catch (error) {
-            console.error('Error ejecutando comando:', error);
             this.writeError(`Error: ${error.message}`);
         } finally {
             this.isExecuting = false;
             this.input.focus();
         }
+    }
 
-        this.scrollToBottom();
+    sendSystemCommand(command) {
+        return new Promise((resolve, reject) => {
+            const messageId = Math.random().toString(36).substring(2);
+
+            const listener = (event) => {
+                if (event.data.type === 'systemAPI-response' && event.data.messageId === messageId) {
+                    window.removeEventListener('message', listener);
+                    if (event.data.error) {
+                        reject(new Error(event.data.error));
+                    } else {
+                        resolve(event.data.response);
+                    }
+                }
+            };
+
+            window.addEventListener('message', listener);
+
+            window.parent.postMessage({
+                type: 'systemAPI-command',
+                command: command,
+                messageId: messageId
+            }, '*');
+        });
     }
 
     handleKeyDown(e) {
@@ -257,4 +374,4 @@ class Terminal {
 // Inicializar la terminal cuando el documento esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.terminal = new Terminal();
-}); 
+});   

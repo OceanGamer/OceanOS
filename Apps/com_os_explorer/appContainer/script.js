@@ -129,17 +129,38 @@ class FileExplorer {
 
     async loadDirectoryContents(path) {
         try {
-            console.log('Cargando directorio:', path);
             const normalizedPath = this.normalizePath(path);
-            this.pendingResponses = []; // Resetear respuestas pendientes
-            window.parent.postMessage({
-                type: 'terminal-command',
-                command: `ls ${normalizedPath}`,
-                source: 'explorer'
-            }, '*');
+            const response = await this.sendSystemCommand(`ls ${normalizedPath}`);
+            const files = this.parseDirectoryListing(response);
+            this.displayFiles(files);
         } catch (error) {
             console.error('Error cargando directorio:', error);
         }
+    }
+
+    sendSystemCommand(command) {
+        return new Promise((resolve, reject) => {
+            const messageId = Math.random().toString(36).substring(2);
+
+            const listener = (event) => {
+                if (event.data.type === 'systemAPI-response' && event.data.messageId === messageId) {
+                    window.removeEventListener('message', listener);
+                    if (event.data.error) {
+                        reject(new Error(event.data.error));
+                    } else {
+                        resolve(event.data.response);
+                    }
+                }
+            };
+
+            window.addEventListener('message', listener);
+
+            window.parent.postMessage({
+                type: 'systemAPI-command',
+                command: command,
+                messageId: messageId
+            }, '*');
+        });
     }
 
     processResponse(response) {

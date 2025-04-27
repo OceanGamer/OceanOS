@@ -2,12 +2,13 @@
     "appname": "WhatsApp",
     "applogo": "app.webp",
     "version": "1.0.0",
-    "index": "index.html",
+    "index": "https://web.whatsapp.com/",
     "width": 800,
     "height": 600,
     "minWidth": 400,
     "minHeight": 300,
     "resizable": true,
+    "webApp": true,
     "navMenus": [
       {
           "name": "Ventana",

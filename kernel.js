@@ -1,57 +1,35 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { execFileSync, spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
-const driversDir = path.join(__dirname, 'System', 'code', 'drivers');
+const { exec } = require('child_process');
 
 let mainWindow;
 
-function runPythonScript(scriptName, args = []) {
-  try {
-    const stdout = execFileSync('python', [path.join(driversDir, scriptName), ...args], { encoding: 'utf-8' });
-    return JSON.parse(stdout);
-  } catch (error) {
-    console.error(`Error ejecutando ${scriptName}:`, error);
-    return null;
-  }
-}
-
-function executePowerShell(command) {
+function executeDebianBash(command) {
   return new Promise((resolve, reject) => {
-    const powershell = spawn('powershell.exe', ['-Command', command]);
-    let stdout = '';
-    let stderr = '';
-
-    powershell.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    powershell.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    powershell.on('close', (code) => {
-      if (code === 0) {
-        resolve({ success: true, stdout: stdout.trim(), stderr: stderr.trim() });
-      } else {
-        resolve({ success: false, stdout: stdout.trim(), stderr: stderr.trim() });
+    exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+      if (error) {
+        reject({ success: false, error: error.message, stderr });
+        return;
       }
-    });
-
-    powershell.on('error', (error) => {
-      reject(error);
+      resolve({ success: true, output: stdout.trim() });
     });
   });
 }
 
 function createWindow() {
+  // Obtener las dimensiones de la pantalla
+  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    fullscreen: true,
+    width: width,
+    height: height,
+    x: 0,
+    y: 0,
+    fullscreen: true, // Esto asegura que esté en modo pantalla completa
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webviewTag: true,
       sandbox: false,
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: false,
@@ -70,49 +48,12 @@ function createWindow() {
     });
   });
 
-  ipcMain.handle('python-get-volume', () => runPythonScript('volume_controller.py', ['get']));
-  ipcMain.handle('python-set-volume', (event, level) => runPythonScript('volume_controller.py', ['set', level.toString()]));
-  ipcMain.handle('python-toggle-mute', () => runPythonScript('volume_controller.py', ['toggle']));
-  
-  ipcMain.handle('python-get-network', () => runPythonScript('network_driver.py', []));
-  ipcMain.handle('python-toggle-wifi', () => runPythonScript('network_driver.py', ['toggle']));
-  
-  ipcMain.handle('python-get-bluetooth', () => runPythonScript('bluetooth_driver.py', []));
-  ipcMain.handle('python-toggle-bluetooth', () => runPythonScript('bluetooth_driver.py', ['toggle']));
-  
-  ipcMain.handle('python-get-battery', () => runPythonScript('battery_driver.py', []));
-  
-  ipcMain.handle('python-get-airplane', () => runPythonScript('airplane_driver.py', []));
-  ipcMain.handle('python-toggle-airplane', () => runPythonScript('airplane_driver.py', ['toggle']));
-
-  ipcMain.handle('execute-powershell', async (event, command) => {
+  ipcMain.handle('execute-bash', async (event, command) => {
     try {
-      return await executePowerShell(command);
+      return await executeDebianBash(command);
     } catch (error) {
-      console.error('Error ejecutando PowerShell:', error);
+      console.error('Error ejecutando el bash:', error);
       return { success: false, error: error.message };
-    }
-  });
-
-  // Manejadores para operaciones de archivos
-  ipcMain.handle('check-file-exists', (event, filePath) => {
-    return fs.existsSync(filePath);
-  });
-
-  ipcMain.handle('read-file', (event, filePath) => {
-    try {
-      return fs.readFileSync(filePath, 'utf8');
-    } catch (error) {
-      throw new Error(`Error al leer el archivo: ${error.message}`);
-    }
-  });
-
-  ipcMain.handle('write-file', (event, filePath, content) => {
-    try {
-      fs.writeFileSync(filePath, content, 'utf8');
-      return true;
-    } catch (error) {
-      throw new Error(`Error al escribir el archivo: ${error.message}`);
     }
   });
 
@@ -122,6 +63,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 }
+
+app.whenReady().then(createWindow);
 
 app.whenReady().then(createWindow);
 app.on('activate', () => {
